@@ -1,4 +1,4 @@
-Subzone,Planning Area,Population
+Subzone,Planning_Area,Population
 Admiralty,Sembawang,13480
 Airport Road,Paya Lebar,-
 Alexandra Hill,Bukit Merah,13150
@@ -135,8 +135,8 @@ Kian Teck,Jurong West,30
 Kim Keat,Toa Payoh,7610
 Kovan,Hougang,24370
 Kranji,Sungei Kadut,10
-Lakeside (Business),Jurong East,-
-Lakeside (Leisure),Jurong East,970
+Lakeside,Jurong East,-
+Lakeside,Jurong East,970
 Lavender,Kallang,9460
 Leedon Park,Bukit Timah,6270
 Leonie Hill,River Valley,3180
@@ -191,7 +191,7 @@ Orange Grove,Newton,1700
 Oxley,River Valley,1490
 Pandan,Clementi,10
 Pang Sua,Sungei Kadut,10
-Park,Tengah,-
+Tengah,Tengah,-
 Pasir Panjang 1,Queenstown,4530
 Pasir Panjang 2,Queenstown,2910
 Pasir Ris Central,Pasir Ris,31860

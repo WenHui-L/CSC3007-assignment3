@@ -3,14 +3,38 @@
 
 <head>
     <meta charset="UTF-8">
-    <style></style>
+    <style>
+        .population_select.selected {
+          fill: #77BFC7;
+          stroke:#31906E;
+          stroke-width: 2px;
+        }
+
+        .legend_rect {
+          fill:  black;
+          stroke:#31906E;
+        }
+      </style>
 </head>
 
 <body>
     <svg></svg>
+      
+        <div class="tooltip"></div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <script>
+        var tooltip = d3.select("body")
+          .append("rect")
+          .attr("id", "tooltip")
+          .style("position", "absolute")
+          .style("background-color", "white")
+          .style("padding", "20px")
+          .style("visibility", "hidden");
+
+        let color_map = d3.scaleThreshold()
+        .domain([0, 10 , 2000, 3000 , 5000 , 8000, 10000, 15000, 20000 , 50000 , 100000 , 300000])
+        .range([ "white", "#E0B0FF" , "#DDA0DD", "#C38EC7", "#B666D2" , "#D58A94" , "#E799A3", "#C48189" , "#C5908E" , "#7F4E52" ,"#550A35", "#663399"])
 
         let width = 1000, height = 600;
 
@@ -19,16 +43,38 @@
 
         // Load external data
         Promise.all([d3.json("sgmap.json"), d3.csv("population2021.csv")]).then(data => {
-
-            console.log(data[0]);
-            console.log(data[1]);
-
-            // Map and projection
+           // let test = data[1].map(({ Subzone, Population}) => ({ [Subzone]: Population }));
+            let data_pop = data[1].map((x) => ({Population: x.Population , Subzone: x.Subzone , Planning_Area: x.Planning_Area }));
+          //  console.log(data_pop.findIndex(e => e.Admiralty))
+            
+          // Map and projection
             var projection = d3.geoMercator()
                 .center([103.851959, 1.290270])
                 .fitExtent([[20, 20], [980, 580]], data[0]);
 
             let geopath = d3.geoPath().projection(projection);
+
+
+            function population_no(d , data_pop){
+              pop_no = 0
+              area_name = d.properties.Name
+              color_codeindex = data_pop.findIndex(e => e.Subzone.toLowerCase() === area_name.toLowerCase());
+              if (color_codeindex == -1) {
+                color_codeindex = data_pop.findIndex(e => e.Planning_Area.toLowerCase() === area_name.toLowerCase());
+                pop_no =  data_pop[color_codeindex].Population
+              }else{
+                pop_no = data_pop[color_codeindex].Population
+              }
+              return pop_no
+            }
+          
+
+            // background color 
+            svg.append("path")
+            .datum({type: "Sphere"})
+            .attr("id", "background_color")
+            .attr("d", geopath)
+            .attr("fill", "rgb(226, 219, 219)");
 
             svg.append("g")
                 .attr("id", "districts")
@@ -37,8 +83,46 @@
                 .enter()
                 .append("path")
                 .attr("d", geopath)
-                .attr("fill", "black");
+                .attr("class", "population_select")
+                .attr("fill", function (d) {
+                    pop_no = population_no(d , data_pop)
+                    return color_map(pop_no);
+                })
+
+                var xyz = [[320, 52, 900], [220, 47, 1233], [89.5, 287, 899], [424.5, 
+93.5, 1250]];
+var circles = svg.selectAll()
+//color_map
+              .data(xyz)
+              .enter()
+              .append("circle");
+            circles.attr("cx", 100)
+            .attr("cy", 100)
+            .attr("r", 8)
+
+                .on("mouseover", (event, d) => {
+                areaPop_select  = population_no(d , data_pop)
+                tooltip.style("visibility", "visible")
+                .style('left', event.pageX + 'px')
+                .style('top', event.pageY + 'px')
+                .text("Subsdistrict : " + d.properties.Name.toLowerCase() + " \n " + 
+                'Population:'  + areaPop_select);
+
+
+        d3.select(event.currentTarget).classed("selected", true);
+      })
+
+      .on("mouseout", (event, d) => {
+        d3.select(event.currentTarget).attr("stroke", "none");
+          tooltip.style("visibility", "hidden");
+        d3.select(event.currentTarget).classed("selected" , false);
         })
+            
+        Legend(d3.scaleSqrt([-100, 0, 100], ["blue", "white", "red"]), {
+          title: "Temperature (°C)"
+        })
+
+})
 
     </script>
 
