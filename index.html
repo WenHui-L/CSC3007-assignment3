@@ -10,10 +10,6 @@
           stroke-width: 2px;
         }
 
-        .legend_rect {
-          fill:  black;
-          stroke:#31906E;
-        }
       </style>
 </head>
 
@@ -33,8 +29,8 @@
           .style("visibility", "hidden");
 
         let color_map = d3.scaleThreshold()
-        .domain([0, 10 , 2000, 3000 , 5000 , 8000, 10000, 15000, 20000 , 50000 , 100000 , 300000])
-        .range([ "white", "#E0B0FF" , "#DDA0DD", "#C38EC7", "#B666D2" , "#D58A94" , "#E799A3", "#C48189" , "#C5908E" , "#7F4E52" ,"#550A35", "#663399"])
+        .domain([10, 3000 , 5000 , 10000, 15000, 20000 , 50000 , 100000 , 300000])
+        .range([ "#E0B0FF" ,"#C38EC7", "#B666D2" , "#E799A3", "#C48189" , "#C5908E" , "#7F4E52" ,"#550A35", "#663399"])
 
         let width = 1000, height = 600;
 
@@ -76,6 +72,38 @@
             .attr("d", geopath)
             .attr("fill", "rgb(226, 219, 219)");
 
+
+            console.log(color_map.domain)
+              var total_range = [10, 3000 , 5000 , 10000, 15000, 20000 , 50000 , 100000 , 300000];
+
+              var circles_labels = svg.selectAll()
+              .data(total_range)
+              .enter()
+              .append("text")
+              .attr("cx", 800)
+              .attr("cy", function(d,i){ return 100 + i * 20})
+              .text(function(d){ return d + "id" })
+              .style("fill", "blue")
+              .attr("height", 50)
+             .attr("width", 350);
+
+
+
+              var circles = svg.selectAll()
+              .data(total_range)
+              .enter()
+              .append("circle");
+             circles.attr("cx", 30)
+            .attr("cy", function(d,i){ return 100 + i * 20})
+            .attr("r", 8)
+            .attr("fill", function (d) {
+                    return color_map(d);
+                })
+             .text(function(d){ return "id" })
+
+
+
+
             svg.append("g")
                 .attr("id", "districts")
                 .selectAll("path")
@@ -88,17 +116,6 @@
                     pop_no = population_no(d , data_pop)
                     return color_map(pop_no);
                 })
-
-                var xyz = [[320, 52, 900], [220, 47, 1233], [89.5, 287, 899], [424.5, 
-93.5, 1250]];
-var circles = svg.selectAll()
-//color_map
-              .data(xyz)
-              .enter()
-              .append("circle");
-            circles.attr("cx", 100)
-            .attr("cy", 100)
-            .attr("r", 8)
 
                 .on("mouseover", (event, d) => {
                 areaPop_select  = population_no(d , data_pop)
@@ -116,10 +133,6 @@ var circles = svg.selectAll()
         d3.select(event.currentTarget).attr("stroke", "none");
           tooltip.style("visibility", "hidden");
         d3.select(event.currentTarget).classed("selected" , false);
-        })
-            
-        Legend(d3.scaleSqrt([-100, 0, 100], ["blue", "white", "red"]), {
-          title: "Temperature (°C)"
         })
 
 })
