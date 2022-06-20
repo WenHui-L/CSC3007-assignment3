@@ -18,6 +18,7 @@
       
         <div class="tooltip"></div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
 
     <script>
         var tooltip = d3.select("body")
@@ -29,8 +30,8 @@
           .style("visibility", "hidden");
 
         let color_map = d3.scaleThreshold()
-        .domain([10, 3000 , 5000 , 10000, 15000, 20000 , 50000 , 100000 , 300000])
-        .range([ "#E0B0FF" ,"#C38EC7", "#B666D2" , "#E799A3", "#C48189" , "#C5908E" , "#7F4E52" ,"#550A35", "#663399"])
+        .domain([10, 3000 , 5000 , 20000 , 50000 , 100000 , 300000])
+        .range([ "#E0B0FF" ,"#C38EC7", "#B666D2" , "#C5908E" , "#7F4E52" ,"#550A35", "#663399"])
 
         let width = 1000, height = 600;
 
@@ -39,9 +40,7 @@
 
         // Load external data
         Promise.all([d3.json("sgmap.json"), d3.csv("population2021.csv")]).then(data => {
-           // let test = data[1].map(({ Subzone, Population}) => ({ [Subzone]: Population }));
-            let data_pop = data[1].map((x) => ({Population: x.Population , Subzone: x.Subzone , Planning_Area: x.Planning_Area }));
-          //  console.log(data_pop.findIndex(e => e.Admiralty))
+          let data_pop = data[1].map((x) => ({Population: x.Population , Subzone: x.Subzone , Planning_Area: x.Planning_Area }));
             
           // Map and projection
             var projection = d3.geoMercator()
@@ -74,33 +73,22 @@
 
 
             console.log(color_map.domain)
-              var total_range = [10, 3000 , 5000 , 10000, 15000, 20000 , 50000 , 100000 , 300000];
-
-              var circles_labels = svg.selectAll()
-              .data(total_range)
-              .enter()
-              .append("text")
-              .attr("cx", 800)
-              .attr("cy", function(d,i){ return 100 + i * 20})
-              .text(function(d){ return d + "id" })
-              .style("fill", "blue")
-              .attr("height", 50)
-             .attr("width", 350);
+            var total_range = [10, 3000 , 5000 , 10000, 15000, 20000 , 50000 , 100000 , 300000];
 
 
+            svg.append("g")
+            .attr("class", "legendLinear")
+            .attr("transform", "translate(10,10)");
+            
+            var legendLinear = d3.legendColor()
+            .shapeWidth(35)
+            .labels(total_range)
+            .orient('horizontal')
+            .shapePadding(20)
+            .scale(color_map);
 
-              var circles = svg.selectAll()
-              .data(total_range)
-              .enter()
-              .append("circle");
-             circles.attr("cx", 30)
-            .attr("cy", function(d,i){ return 100 + i * 20})
-            .attr("r", 8)
-            .attr("fill", function (d) {
-                    return color_map(d);
-                })
-             .text(function(d){ return "id" })
-
+            svg.select(".legendLinear")
+            .call(legendLinear);
 
 
 
