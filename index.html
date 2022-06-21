@@ -2,130 +2,129 @@
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <style>
-        .population_select.selected {
-          fill: #77BFC7;
-          stroke:#31906E;
-          stroke-width: 2px;
-        }
-
-      </style>
+  <meta charset="UTF-8">
+  <style>
+    .population_select.selected {
+      fill: #77BFC7;
+      stroke: #31906E;
+      stroke-width: 2px;
+    }
+  </style>
 </head>
 
 <body>
-    <svg></svg>
-      
-        <div class="tooltip"></div>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+  <svg></svg>
 
-    <script>
-        var tooltip = d3.select("body")
-          .append("rect")
-          .attr("id", "tooltip")
-          .style("position", "absolute")
-          .style("background-color", "white")
-          .style("padding", "20px")
-          .style("visibility", "hidden");
+  <div class="tooltip"></div>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
 
-        let color_map = d3.scaleThreshold()
-        .domain([10, 3000 , 5000  , 50000 , 100000 , 300000])
-        .range([ "#E0B0FF" ,"#C38EC7", "#B666D2" , "#7F4E52" ,"#550A35", "#663399"])
+  <script>
+    var tooltip = d3.select("body")
+      .append("rect")
+      .attr("id", "tooltip")
+      .style("position", "absolute")
+      .style("background-color", "white")
+      .style("padding", "20px")
+      .style("visibility", "hidden");
 
-        let width = 1000, height = 600;
+    let color_map = d3.scaleThreshold()
+      .domain([10, 3000, 5000, 50000, 100000, 300000])
+      .range(["#E0B0FF", "#C38EC7", "#B666D2", "#7F4E52", "#550A35", "#663399"])
 
-        let svg = d3.select("svg")
-            .attr("viewBox", "0 0 " + width + " " + height)
+    let width = 1000, height = 600;
 
-        // Load external data
-        Promise.all([d3.json("sgmap.json"), d3.csv("population2021.csv")]).then(data => {
-          let data_pop = data[1].map((x) => ({Population: x.Population , Subzone: x.Subzone , Planning_Area: x.Planning_Area }));
-            
-          // Map and projection
-            var projection = d3.geoMercator()
-                .center([103.851959, 1.290270])
-                .fitExtent([[20, 20], [980, 580]], data[0]);
+    let svg = d3.select("svg")
+      .attr("viewBox", "0 0 " + width + " " + height)
 
-            let geopath = d3.geoPath().projection(projection);
+    // Load external data
+    Promise.all([d3.json("sgmap.json"), d3.csv("population2021.csv")]).then(data => {
+      let data_pop = data[1].map((x) => ({ Population: x.Population, Subzone: x.Subzone, Planning_Area: x.Planning_Area }));
 
+      // Map and projection
+      var projection = d3.geoMercator()
+        .center([103.851959, 1.290270])
+        .fitExtent([[20, 20], [980, 580]], data[0]);
 
-            function population_no(d , data_pop){
-              pop_no = 0
-              area_name = d.properties.Name
-              color_codeindex = data_pop.findIndex(e => e.Subzone.toLowerCase() === area_name.toLowerCase());
-              if (color_codeindex == -1) {
-                color_codeindex = data_pop.findIndex(e => e.Planning_Area.toLowerCase() === area_name.toLowerCase());
-                pop_no =  data_pop[color_codeindex].Population
-              }else{
-                pop_no = data_pop[color_codeindex].Population
-              }
-              return pop_no
-            }
-          
-
-            // background color 
-            svg.append("path")
-            .datum({type: "Sphere"})
-            .attr("id", "background_color")
-            .attr("d", geopath)
-            .attr("fill", "rgb(226, 219, 219)");
+      let geopath = d3.geoPath().projection(projection);
 
 
-            console.log(color_map.domain)
-            var total_range = [10, 3000 , 5000  , 50000 , 100000 , 300000];
+      function population_no(d, data_pop) {
+        pop_no = 0
+        area_name = d.properties.Name
+        color_codeindex = data_pop.findIndex(e => e.Subzone.toLowerCase() === area_name.toLowerCase());
+        if (color_codeindex == -1) {
+          color_codeindex = data_pop.findIndex(e => e.Planning_Area.toLowerCase() === area_name.toLowerCase());
+          pop_no = data_pop[color_codeindex].Population
+        } else {
+          pop_no = data_pop[color_codeindex].Population
+        }
+        return pop_no
+      }
 
 
-            svg.append("g")
-            .attr("class", "legendLinear")
-            .attr("transform", "translate(10,10)");
-            
-            var legendLinear = d3.legendColor()
-            .shapeWidth(35)
-            .labels(total_range)
-            .orient('horizontal')
-            .shapePadding(30)
-            .scale(color_map);
-
-            svg.select(".legendLinear")
-            .call(legendLinear);
+      // background color 
+      svg.append("path")
+        .datum({ type: "Sphere" })
+        .attr("id", "background_color")
+        .attr("d", geopath)
+        .attr("fill", "rgb(226, 219, 219)");
 
 
-
-            svg.append("g")
-                .attr("id", "districts")
-                .selectAll("path")
-                .data(data[0].features)
-                .enter()
-                .append("path")
-                .attr("d", geopath)
-                .attr("class", "population_select")
-                .attr("fill", function (d) {
-                    pop_no = population_no(d , data_pop)
-                    return color_map(pop_no);
-                })
-
-                .on("mouseover", (event, d) => {
-                areaPop_select  = population_no(d , data_pop)
-                tooltip.style("visibility", "visible")
-                .style('left', event.pageX + 'px')
-                .style('top', event.pageY + 'px')
-                .text("Subsdistrict : " + d.properties.Name.toLowerCase() + " \n " + 
-                'Population:'  + areaPop_select);
+      console.log(color_map.domain)
+      var total_range = [10, 3000, 5000, 50000, 100000, 300000];
 
 
-        d3.select(event.currentTarget).classed("selected", true);
-      })
+      svg.append("g")
+        .attr("class", "legendLinear")
+        .attr("transform", "translate(10,10)");
 
-      .on("mouseout", (event, d) => {
-        d3.select(event.currentTarget).attr("stroke", "none");
-          tooltip.style("visibility", "hidden");
-        d3.select(event.currentTarget).classed("selected" , false);
+      var legendLinear = d3.legendColor()
+        .shapeWidth(35)
+        .labels(total_range)
+        .orient('horizontal')
+        .shapePadding(30)
+        .scale(color_map);
+
+      svg.select(".legendLinear")
+        .call(legendLinear);
+
+
+
+      svg.append("g")
+        .attr("id", "districts")
+        .selectAll("path")
+        .data(data[0].features)
+        .enter()
+        .append("path")
+        .attr("d", geopath)
+        .attr("class", "population_select")
+        .attr("fill", function (d) {
+          pop_no = population_no(d, data_pop)
+          return color_map(pop_no);
         })
 
-})
+        .on("mouseover", (event, d) => {
+          areaPop_select = population_no(d, data_pop)
+          tooltip.style("visibility", "visible")
+            .style('left', event.pageX + 'px')
+            .style('top', event.pageY + 'px')
+            .text("Subsdistrict : " + d.properties.Name.toLowerCase() + " \n " +
+              'Population:' + areaPop_select);
 
-    </script>
+
+          d3.select(event.currentTarget).classed("selected", true);
+        })
+
+        .on("mouseout", (event, d) => {
+          d3.select(event.currentTarget).attr("stroke", "none");
+          tooltip.style("visibility", "hidden");
+          d3.select(event.currentTarget).classed("selected", false);
+        })
+
+    })
+
+  </script>
 
 </body>
 
